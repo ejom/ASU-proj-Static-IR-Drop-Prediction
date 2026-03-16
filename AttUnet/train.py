@@ -19,9 +19,17 @@ from metrics import F1_Score
 import seaborn as sns
 from matplotlib import pyplot as plt
 
-# Create checkpoint directories
-os.makedirs('../saved/pt', exist_ok=True)
-os.makedirs('../saved/ft_real', exist_ok=True)
+# Save checkpoints to Google Drive if available, otherwise local
+DRIVE_SAVE = '/content/drive/MyDrive/ir-drop-saved'
+if os.path.isdir('/content/drive/MyDrive'):
+    SAVE_DIR = DRIVE_SAVE
+    print(f'Saving checkpoints to Google Drive: {SAVE_DIR}')
+else:
+    SAVE_DIR = '../saved'
+    print(f'Google Drive not mounted — saving locally: {SAVE_DIR}')
+
+os.makedirs(f'{SAVE_DIR}/pt', exist_ok=True)
+os.makedirs(f'{SAVE_DIR}/ft_real', exist_ok=True)
 
 torch.cuda.empty_cache()
 np.random.seed(0)
@@ -154,7 +162,7 @@ for epoch in range(num_epochs_pt):
         f_score += F1_Score(output.cpu().detach().numpy().copy(), ir.cpu().numpy().copy())[0]
         
     if (epoch+1) % 50 == 0 or epoch == 0:
-        torch.save(model.state_dict(), '../saved/pt/'+str(epoch)+'.pth')
+        torch.save(model.state_dict(), f'{SAVE_DIR}/pt/{epoch}.pth')
         
     print('Epoch [{}/{}], Loss: {:.4f}, F1 Score: {:.4f}, MSE: {:.4f}, L1: {:.4f}'
             .format(epoch+1, num_epochs_pt, loss_sum/len(dataloader_fake), f_score/len(dataloader_fake), mse.item(), l1.item()))
@@ -217,7 +225,7 @@ for epoch in range(num_epochs_ft):
 
         
     if (epoch+1) % 50 == 0 or epoch == 0:
-        torch.save(model.state_dict(), '../saved/ft_real/'+str(epoch)+'.pth')
+        torch.save(model.state_dict(), f'{SAVE_DIR}/ft_real/{epoch}.pth')
         
         l1_sum=0
         f1_sum=0
