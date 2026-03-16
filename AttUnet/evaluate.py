@@ -186,7 +186,8 @@ def evaluate_model(model, dataloader_512, dataloader_orig):
 
 def main():
     # Create model and load trained weights
-    model = VCAttUNet(in_ch=12, out_ch=1)
+    # dropout_rate doesn't matter for eval (dropout is disabled in eval mode)
+    model = VCAttUNet(in_ch=12, out_ch=1, dropout_rate=0.0)
 
     try:
         model.load_state_dict(torch.load(args.model, map_location=device))
