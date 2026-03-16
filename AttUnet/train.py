@@ -95,18 +95,14 @@ class CustomMSELoss(nn.Module):
         self.negative_scale = negative_scale
 
     def forward(self, prediction, target):
-        # Calculate the squared error
-        squared_error = torch.abs(prediction - target) 
-        
-        # Identify negative errors
-        negative_errors = (prediction - target) < 0
-        
-        # Apply scaling to negative errors
-        squared_error[negative_errors] *= self.negative_scale
-        
-        # Calculate mean of the modified squared error
-        loss = torch.mean(squared_error)
-        return loss
+        # Calculate the squared error per element
+        squared_error = (prediction - target) ** 2
+
+        # Penalize underestimation (pred < target) more heavily
+        underestimation = (prediction - target) < 0
+        squared_error[underestimation] *= self.negative_scale
+
+        return torch.mean(squared_error)
 
 
 ######## Hyperparameters (matched to paper) ########
@@ -179,12 +175,11 @@ with torch.no_grad():
     for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_original_size)):
         maps = data[:,:-1,:,:].to(device)
         ir = data_org[:,-1,:,:].unsqueeze(1)
-        shape = ir.shape
         output, x = model(maps)
-        output = output/scale
-        output = output.cpu().detach().numpy()
-        output = torch.tensor(resize(output, shape))
-        mse = MSE(output, ir).item()
+        output = output.cpu().detach().numpy()[0, 0] / scale        # (512, 512)
+        ir_np = ir.numpy()[0, 0]                                     # (H, W)
+        output_resized = resize(output, ir_np.shape, preserve_range=True)
+        output = torch.tensor(output_resized).unsqueeze(0).unsqueeze(0)  # (1, 1, H, W)
         l1_sum += L1(output, ir).item()
         f1_sum += F1_Score(output.numpy().copy(), ir.numpy().copy())[0]
 
@@ -239,12 +234,11 @@ for epoch in range(num_epochs_ft):
             for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_original_size)):
                 maps = data[:,:-1,:,:].to(device)
                 ir = data_org[:,-1,:,:].unsqueeze(1)
-                shape = ir.shape
                 output, x = model(maps)
-                output = output/scale
-                output = output.cpu().detach().numpy()
-                output = torch.tensor(resize(output, shape))
-                mse = MSE(output, ir).item()
+                output = output.cpu().detach().numpy()[0, 0] / scale        # (512, 512)
+                ir_np = ir.numpy()[0, 0]                                     # (H, W)
+                output_resized = resize(output, ir_np.shape, preserve_range=True)
+                output = torch.tensor(output_resized).unsqueeze(0).unsqueeze(0)  # (1, 1, H, W)
                 l1_sum += L1(output, ir).item()
                 f1_sum += F1_Score(output.numpy().copy(), ir.numpy().copy())[0]
         
