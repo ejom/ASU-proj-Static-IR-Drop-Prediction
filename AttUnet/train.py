@@ -78,7 +78,7 @@ dataloader_real = torch.utils.data.DataLoader(dataset = dataset_real,
                                         pin_memory = True)
 
 dataloader_test = torch.utils.data.DataLoader(dataset = dataset_test,
-                                        batch_size = 5,
+                                        batch_size = 1,
                                         shuffle = False)
 
 dataloader_test_original_size = torch.utils.data.DataLoader(dataset = dataset_test_original_size,
@@ -174,18 +174,19 @@ for epoch in range(num_epochs_pt):
 
 l1_sum=0
 f1_sum=0
-for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_original_size)):
-    maps = data[:,:-1,:,:].to(device)
-    ir = data_org[:,-1,:,:].unsqueeze(1)
-    shape = ir.shape
-    output, x = model(maps)
-    output = output/100
-    output = output.cpu().detach().numpy()
-    output = torch.tensor(resize(output, shape))
-    mse = MSE(output, ir).item()
-    l1_sum += L1(output, ir).item()
-    f1_sum = F1_Score(output.numpy().copy(), ir.numpy().copy())[0]
-    # print(L1(output, ir).item(), F1_Score(output.numpy().copy(), ir.numpy().copy())[0])
+model.eval()
+with torch.no_grad():
+    for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_original_size)):
+        maps = data[:,:-1,:,:].to(device)
+        ir = data_org[:,-1,:,:].unsqueeze(1)
+        shape = ir.shape
+        output, x = model(maps)
+        output = output/scale
+        output = output.cpu().detach().numpy()
+        output = torch.tensor(resize(output, shape))
+        mse = MSE(output, ir).item()
+        l1_sum += L1(output, ir).item()
+        f1_sum += F1_Score(output.numpy().copy(), ir.numpy().copy())[0]
 
 print('****** After pretraining, L1 Loss: {:.8f}, F1 Score: {:.4f}'.format(l1_sum/len(dataloader_test), f1_sum/len(dataloader_test)))
 # wandb.log({'after_pt_l1':l1_sum/len(dataloader_test), 'after_pt_f1':f1_sum/len(dataloader_test)})
@@ -233,18 +234,19 @@ for epoch in range(num_epochs_ft):
         
         l1_sum=0
         f1_sum=0
-        for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_original_size)):
-            maps = data[:,:-1,:,:].to(device)
-            ir = data_org[:,-1,:,:].unsqueeze(1)
-            shape = ir.shape
-            output, x = model(maps)
-            output = output/100
-            output = output.cpu().detach().numpy()
-            output = torch.tensor(resize(output, shape))
-            mse = MSE(output, ir).item()
-            l1_sum += L1(output, ir).item()
-            f1_sum = F1_Score(output.numpy().copy(), ir.numpy().copy())[0]
-            # print(L1(output, ir).item(), F1_Score(output.numpy().copy(), ir.numpy().copy())[0])
+        model.eval()
+        with torch.no_grad():
+            for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_original_size)):
+                maps = data[:,:-1,:,:].to(device)
+                ir = data_org[:,-1,:,:].unsqueeze(1)
+                shape = ir.shape
+                output, x = model(maps)
+                output = output/scale
+                output = output.cpu().detach().numpy()
+                output = torch.tensor(resize(output, shape))
+                mse = MSE(output, ir).item()
+                l1_sum += L1(output, ir).item()
+                f1_sum += F1_Score(output.numpy().copy(), ir.numpy().copy())[0]
         
         # fig, axs = plt.subplots(1,2, sharex=True, sharey=True, figsize=(10, 4))
         # sns.heatmap(output.numpy()[0,0,:],ax=axs[0])
