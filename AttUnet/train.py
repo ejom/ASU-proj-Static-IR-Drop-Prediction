@@ -9,6 +9,7 @@ Created on Sun Feb 18 22:11:33 2024
 import os
 import torch
 import torch.nn as nn
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from skimage.transform import resize
 
 import numpy as np
@@ -108,13 +109,14 @@ class CustomMSELoss(nn.Module):
         return loss
 
 
-######## Hyperparameters ########
+######## Hyperparameters (matched to paper) ########
 
-num_epochs_pt = 50
-num_epochs_ft = 500
+num_epochs_pt = 450
+num_epochs_ft = 600
 
-learning_rate_pt = 0.001
+learning_rate_pt = 0.0005
 learning_rate_ft = 0.0005
+learning_rate_min = 0.00001
 scale = 100
 
 MSE = nn.MSELoss()
@@ -192,15 +194,16 @@ print('****** After pretraining, L1 Loss: {:.8f}, F1 Score: {:.4f}'.format(l1_su
 
 
 ######## Finetune ########
-# model.load_state_dict(torch.load('../saved/pt/49.pth'))
+# model.load_state_dict(torch.load('../saved/pt/449.pth'))
 
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_ft)
-
+scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs_ft, eta_min=learning_rate_min)
 
 
 for epoch in range(num_epochs_ft):
     loss_sum = 0
     f_score = 0
+    model.train()
     for i, data in enumerate(dataloader_real):
         maps = data[:,:-1,:,:]
         maps = maps.to(device)
@@ -211,13 +214,14 @@ for epoch in range(num_epochs_ft):
         mse = MSE(output, ir)
         l1 = L1(output, ir)
         loss_sum += loss.item()
-        
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        
+
         f_score += F1_Score(output.cpu().detach().numpy().copy(), ir.cpu().numpy().copy())[0]
-        
+
+    scheduler.step()
 
     print('Epoch [{}/{}], Loss: {:.4f}, F1 Score: {:.4f}, MSE: {:.4f}, L1: {:.4f}'
             .format(epoch+1, num_epochs_ft, loss_sum/len(dataloader_real), f_score/len(dataloader_real), mse.item(), l1.item()))
