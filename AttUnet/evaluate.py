@@ -11,7 +11,6 @@ Usage:
 """
 
 import torch
-import torch.nn as nn
 import numpy as np
 import argparse
 import os
@@ -59,7 +58,6 @@ dataloader_test_512 = torch.utils.data.DataLoader(dataset=dataset_test_512, batc
 dataloader_test_orig = torch.utils.data.DataLoader(dataset=dataset_test_orig, batch_size=1, shuffle=False)
 
 scale = 100
-L1 = nn.L1Loss()
 
 
 def evaluate_model(model, dataloader_512, dataloader_orig):
@@ -94,8 +92,9 @@ def evaluate_model(model, dataloader_512, dataloader_orig):
             total_mae += mae
 
             # Compute F1 (top 10% hotspot threshold)
-            pred_t = torch.tensor(pred_resized, dtype=ir.dtype).unsqueeze(0).unsqueeze(0)
-            f1 = F1_Score(pred_t.numpy().copy(), ir.numpy().copy())[0]
+            pred_4d = pred_resized[np.newaxis, np.newaxis, :, :]
+            gt_4d = ir_np[np.newaxis, np.newaxis, :, :]
+            f1 = F1_Score(pred_4d.copy(), gt_4d.copy())[0]
             total_f1 += f1
 
             # Store for plotting
@@ -142,6 +141,7 @@ def evaluate_model(model, dataloader_512, dataloader_orig):
     plt.savefig(fig_path, dpi=150)
     print(f'\nHeatmap saved to {fig_path}')
     plt.show()
+    plt.close(fig)
 
     return avg_mae, avg_f1
 
