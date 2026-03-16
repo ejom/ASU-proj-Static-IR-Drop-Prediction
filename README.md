@@ -1,56 +1,101 @@
-# Saliency-Based Explainability for Static IR Drop Prediction 
+# Static IR Drop Prediction with Attention U-Net
 
-_Supported by NSF award 2322713_
+Based on "[Static IR Drop Prediction with Attention U-Net and Saliency-Based Explainability](https://www.arxiv.org/abs/2408.03292)" by Lizi Zhang and Azadeh Davoodi. Original repository: [lzzh97/Static-IR-Drop-Prediction](https://github.com/lzzh97/Static-IR-Drop-Prediction).
 
-This repository contains the implementation of the methodologies proposed in the paper "[Static IR Drop Prediction with Attention U-Net and Saliency-Based Explainability](https://www.arxiv.org/abs/2408.03292)" by Lizi Zhang and Azadeh Davoodi. The project focuses on improving static IR drop prediction in power delivery networks (PDNs) using a novel Attention U-Net model and providing explainability of predictions through saliency maps.
+This fork includes bug fixes, preprocessing optimizations, and Google Colab compatibility for the ASU Semiconductor Solutions Challenge 2026 (Problem D).
 
-## Introduction
+## Model
 
-Static IR drop analysis is a critical task in integrated circuit design, as it helps ensure that power delivery networks (PDNs) provide stable and sufficient voltage across a chip. Traditional methods for IR drop analysis can be computationally expensive. This project introduces AttUNet, a neural network model that leverages attention mechanisms to predict static IR drop efficiently and accurately. Additionally, the project includes a method for generating saliency maps to explain the predicted IR drop and identify the root causes of high-drop regions.
+**VCAttUNet** — a U-Net architecture with embedded attention gates for predicting static IR drop in power delivery networks (PDNs).
 
-## Features
+- **Input**: 12-channel feature maps (current density, effective distance, PDN density, per-layer resistance for metal layers m1/m4/m7/m8/m9, and inter-layer via density for m1-m4/m4-m7/m7-m8/m8-m9)
+- **Output**: Predicted IR drop heatmap
+- **Strategy**: Pretrain on 100 synthetic circuits, finetune on 10 real circuits
+- **Metrics**: F1 score (hotspot detection) and MAE (regression accuracy)
 
-  - **AttUNet Model**: A U-Net-based architecture with embedded attention gates for enhanced prediction accuracy.
-  - **Pretrain-Finetune Strategy**: Utilizes artificially generated data for pretraining and fine-tunes on limited real design data to prevent overfitting.
-  - **Data Augmentation**: Includes a variety of image transformations to increase the robustness of the model.
-  - **Saliency Maps**: Provides a fast and interpretable method to identify the key contributors to predicted IR drop, facilitating targeted optimizations.
+## Project Structure
 
-## Installation
-To install the required dependencies, clone this repository and install the necessary Python packages:
-
-```bash
-git clone https://github.com/lzzh97/Static-IR-Drop-Prediction.git
-cd Static-IR-Drop-Prediction
-pip install -r requirements.txt
+```
+AttUnet/
+  model.py                  # VCAttUNet and VCAttUNet_Large architectures
+  train.py                  # Training script (pretrain + finetune)
+  evaluate.py               # Standalone evaluation script
+  preprocess.py             # Convert CSV data to fast .npy format
+  extract_features.py       # Extract resistance/via features from SPICE netlists
+  DataLoad_normalization.py # Dataset classes for CSV and .npy loading
+  metrics.py                # F1 score and MAE computation
+  utilities.py              # Helper functions for netlist parsing
+data/
+  fake-circuit-data-plus/   # 100 synthetic circuit samples (CSV)
+  real-circuit-data-plus/   # 10 real circuit samples for training (CSV)
+  hidden-real-circuit-data/ # 10 real circuit samples for testing (CSV)
 ```
 
-Ensure you have Python 3.8 or later installed.
+## Quick Start (Google Colab)
 
-## Data Preperation
-The dataset required for this project is included in the repository. This data was originally provided by the ICCAD 2023 contest (https://github.com/ASU-VDA-Lab/ML-for-IR-drop) and is used for training and evaluating the models in this repository.
+### 1. Setup
+```python
+from google.colab import drive
+drive.mount('/content/drive')
 
-## Usage
-
-### Training and Evaluation
-
-1. Run the pretraining phase using the artificially generated dataset.
-```
-python ./AttUNet/train_attunet.py --phase pretrain
+!git clone https://github.com/ejom/ASU-proj-Static-IR-Drop-Prediction.git
+!pip install scikit-image
 ```
 
-2. Fine-tune the model using a smaller, real dataset.
-```
-python ./AttUNet/train_attunet.py --phase finetune --pre <path to pretrained model>
-```
-
-3. Evaluate the model on the test dataset.
-```
-python ./AttUNet/evaluate.py --model <path to model>
+### 2. Extract missing features (first time only)
+```python
+%cd /content/ASU-proj-Static-IR-Drop-Prediction/AttUnet
+!python extract_features.py
 ```
 
-4. Generate saliency maps to explain and diagnose high IR drop predictions.
-```
-python ./AttUNet/generate_saliency_maps.py --model <path to model>
+### 3. Preprocess data (first time only)
+```python
+!python preprocess.py
 ```
 
+### 4. Train
+```python
+!python train.py
+```
 
+### 5. Evaluate
+```python
+!python evaluate.py --model /content/drive/MyDrive/ir-drop-saved/ft_real/599.pth
+```
+
+## Training Details
+
+| Phase | Epochs | Learning Rate | Scheduler |
+|-------|--------|--------------|-----------|
+| Pretrain | 450 | 0.0005 | Constant |
+| Finetune | 600 | 0.0005 → 0.00001 | CosineAnnealingLR |
+
+- **Loss**: Asymmetric MSE (2x penalty for underestimation)
+- **Optimizer**: Adam
+- **Batch size**: 8
+- **Input resolution**: 512x512
+
+## Data
+
+Originally provided by the [ICCAD 2023 Contest Problem C](https://github.com/ASU-VDA-Lab/ML-for-IR-drop). Each circuit sample includes:
+
+| Feature | Description |
+|---------|-------------|
+| current_map | Current density per grid cell |
+| eff_dist_map | Effective distance to nearest power pin |
+| pdn_density | Power delivery network wire density |
+| resistance_m{1,4,7,8,9} | Per-layer metal resistance |
+| via_m{1m4,4m7,7m8,8m9} | Inter-layer via resistance |
+| ir_drop_map | Ground truth IR drop (target) |
+
+## Requirements
+
+```
+torch>=2.0
+numpy
+scikit-image
+scikit-learn
+matplotlib
+seaborn
+scipy
+```
