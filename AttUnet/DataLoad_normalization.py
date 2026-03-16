@@ -86,7 +86,7 @@ class load_fake(data.Dataset):
         maps = os.listdir(root)
         grouped_items = defaultdict(list)
         for m in maps:
-            prefix = re.split('_|\.',m)[1]
+            prefix = re.split(r'_|\.',m)[1]
             grouped_items[prefix].append(m)
             
         grouped_list = list(grouped_items.values())

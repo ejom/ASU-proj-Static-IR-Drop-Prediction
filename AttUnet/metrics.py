@@ -11,8 +11,8 @@ import torch
 from sklearn.metrics import f1_score
 
 def F1_Score(x, y):
-    x_ = x
-    y_ = y
+    x_ = x.copy()
+    y_ = y.copy()
     F_list = []
     for i in range(x_.shape[0]):
         thresh_o = x_[i,:].max() * .9
@@ -55,8 +55,8 @@ def compute_f1_score(output, ground_truth):
     return f1_score.item()
 
 
-def compute_masked_mae(output, ir, threshold = 0.95):
-    threshold = torch.quantile(ir, 0.95)
+def compute_masked_mae(output, ir, quantile = 0.95):
+    threshold = torch.quantile(ir, quantile)
     high_value_mask = ir > threshold
 
     masked_output = output[high_value_mask]

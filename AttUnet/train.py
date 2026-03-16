@@ -142,28 +142,32 @@ model.train()
 for epoch in range(num_epochs_pt):
     loss_sum = 0
     f_score = 0
+    mse_sum = 0
+    l1_sum_train = 0
     for i, data in enumerate(dataloader_fake):
         maps = data[:,:-1,:,:]
         maps = maps.to(device)
         ir = data[:,-1,:,:].unsqueeze(1).to(device)*scale
         output,_ = model(maps)
-        
+
         loss = criterion(output, ir)
         mse = MSE(output, ir)
         l1 = L1(output, ir)
         loss_sum += loss.item()
-        
+        mse_sum += mse.item()
+        l1_sum_train += l1.item()
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        
+
         f_score += F1_Score(output.cpu().detach().numpy().copy(), ir.cpu().numpy().copy())[0]
-        
+
     if (epoch+1) % 50 == 0 or epoch == 0:
         torch.save(model.state_dict(), f'{SAVE_DIR}/pt/{epoch}.pth')
-        
+
     print('Epoch [{}/{}], Loss: {:.4f}, F1 Score: {:.4f}, MSE: {:.4f}, L1: {:.4f}'
-            .format(epoch+1, num_epochs_pt, loss_sum/len(dataloader_fake), f_score/len(dataloader_fake), mse.item(), l1.item()))
+            .format(epoch+1, num_epochs_pt, loss_sum/len(dataloader_fake), f_score/len(dataloader_fake), mse_sum/len(dataloader_fake), l1_sum_train/len(dataloader_fake)))
     
     # wandb.log({'pt_loss':loss_sum/len(dataloader_fake), 'pt_f1':f_score/len(dataloader_fake)})
 
@@ -199,6 +203,8 @@ scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs_ft, eta_min=learning_r
 for epoch in range(num_epochs_ft):
     loss_sum = 0
     f_score = 0
+    mse_sum = 0
+    l1_sum_train = 0
     model.train()
     for i, data in enumerate(dataloader_real):
         maps = data[:,:-1,:,:]
@@ -210,6 +216,8 @@ for epoch in range(num_epochs_ft):
         mse = MSE(output, ir)
         l1 = L1(output, ir)
         loss_sum += loss.item()
+        mse_sum += mse.item()
+        l1_sum_train += l1.item()
 
         optimizer.zero_grad()
         loss.backward()
@@ -220,7 +228,7 @@ for epoch in range(num_epochs_ft):
     scheduler.step()
 
     print('Epoch [{}/{}], Loss: {:.4f}, F1 Score: {:.4f}, MSE: {:.4f}, L1: {:.4f}'
-            .format(epoch+1, num_epochs_ft, loss_sum/len(dataloader_real), f_score/len(dataloader_real), mse.item(), l1.item()))
+            .format(epoch+1, num_epochs_ft, loss_sum/len(dataloader_real), f_score/len(dataloader_real), mse_sum/len(dataloader_real), l1_sum_train/len(dataloader_real)))
     # wandb.log({'ft_loss':loss_sum/len(dataloader_real), 'ft_f1':f_score/len(dataloader_real)})
 
         
