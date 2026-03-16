@@ -19,7 +19,7 @@ import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from torch.utils.data import Subset
-from torch.cuda.amp import autocast, GradScaler
+from torch.amp import autocast, GradScaler
 import numpy as np
 
 from DataLoad_normalization import load_real, load_fake, load_npy
@@ -110,7 +110,7 @@ class HotspotWeightedLoss(nn.Module):
         error = torch.where(underest, error * self.underestimate_scale, error)
         with torch.no_grad():
             B = target.shape[0]
-            t_flat = target.view(B, -1)
+            t_flat = target.reshape(B, -1)
             thresholds = 0.9 * t_flat.max(dim=1)[0]
             thresholds = thresholds.view(B, 1, 1, 1)
             hotspot_mask = (target >= thresholds).float()
@@ -145,7 +145,7 @@ scale = 100
 MSE = nn.MSELoss()
 L1 = nn.L1Loss()
 criterion = HotspotWeightedLoss()
-scaler = GradScaler(enabled=use_amp)
+scaler = GradScaler('cuda', enabled=use_amp)
 
 
 ######## Helper: Evaluate on validation set ########
@@ -160,7 +160,7 @@ def evaluate_on_val(model):
         for data in dataloader_real_val:
             maps = data[:, :-1, :, :].to(device)
             ir = data[:, -1:, :, :].to(device) * scale
-            with autocast(enabled=use_amp):
+            with autocast(device_type=device.type, enabled=use_amp):
                 output, _ = model(maps)
             output = output.float()
             l1_sum += L1(output, ir).item()
@@ -194,7 +194,7 @@ for epoch in range(num_epochs_pt):
         maps, ir = augment_batch(maps, ir)
 
         optimizer.zero_grad(set_to_none=True)
-        with autocast(enabled=use_amp):
+        with autocast(device_type=device.type, enabled=use_amp):
             output, _ = model(maps)
             loss = criterion(output, ir)
 
@@ -246,7 +246,7 @@ for epoch in range(num_epochs_ft):
         maps, ir = augment_batch(maps, ir)
 
         optimizer.zero_grad(set_to_none=True)
-        with autocast(enabled=use_amp):
+        with autocast(device_type=device.type, enabled=use_amp):
             output, _ = model(maps)
             loss = criterion(output, ir)
 
