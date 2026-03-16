@@ -15,14 +15,20 @@ warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
 
 def F1_Score(x, y):
-    """Compute per-sample F1 score for hotspot detection (top 10% threshold)."""
+    """Compute per-sample F1 score for hotspot detection.
+
+    Contest spec: hotspot = pixel with IR drop > 90% of that testcase's
+    ground-truth maximum. The SAME threshold (from ground truth) is applied
+    to both prediction and ground truth.
+    """
     scores = []
     for i in range(x.shape[0]):
         pred = x[i, 0].copy()
         gt = y[i, 0].copy()
 
-        pred_bin = (pred > 0.9 * pred.max()).astype(np.uint8)
-        gt_bin = (gt > 0.9 * gt.max()).astype(np.uint8)
+        threshold = 0.9 * gt.max()
+        pred_bin = (pred > threshold).astype(np.uint8)
+        gt_bin = (gt > threshold).astype(np.uint8)
 
         scores.append(
             f1_score(gt_bin.flatten(), pred_bin.flatten(), average='binary', zero_division=0)

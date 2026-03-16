@@ -85,7 +85,7 @@ def evaluate_model(model, dataloader_512, dataloader_orig):
             pred = output.cpu().detach().numpy()[0, 0] / scale
             ir_np = ir.numpy()[0, 0]
 
-            pred_resized = resize(pred, ir_np.shape, preserve_range=True)
+            pred_resized = resize(pred, ir_np.shape, preserve_range=True, anti_aliasing=True)
 
             # Compute MAE
             mae = np.mean(np.abs(pred_resized - ir_np))
