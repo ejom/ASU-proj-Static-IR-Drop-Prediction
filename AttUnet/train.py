@@ -13,7 +13,7 @@ from skimage.transform import resize
 
 import numpy as np
 
-from DataLoad_normalization import load_real, load_fake, load_real_original_size
+from DataLoad_normalization import load_real, load_fake, load_real_original_size, load_npy
 from metrics import F1_Score
 
 import seaborn as sns
@@ -36,25 +36,42 @@ print(device.type)
 
 ######## dataloader ########
 
-datapath_fake='../data/fake-circuit-data-plus/'
-dataset_fake = load_fake(datapath_fake)
+# Use preprocessed .npy data if available, otherwise fall back to CSV
+use_npy = os.path.isdir('../data/fake-npy') and len(os.listdir('../data/fake-npy')) > 0
+if use_npy:
+    print('Using preprocessed .npy data (fast)')
+    dataset_fake = load_npy('../data/fake-npy')
+    dataset_real = load_npy('../data/real-npy')
+    dataset_test = load_npy('../data/hidden-npy')
+    dataset_test_original_size = load_npy('../data/hidden-npy-orig')
+else:
+    print('Using raw CSV data (slow — run preprocess.py first for faster training)')
+    datapath_fake='../data/fake-circuit-data-plus/'
+    dataset_fake = load_fake(datapath_fake)
+
+    datapath_real='../data/real-circuit-data-plus/'
+    dataset_real = load_real(datapath_real, mode='train', testcase=[])
+
+    datapath_test='../data/hidden-real-circuit-data/'
+    dataset_test = load_real(datapath_test, mode='train', testcase=[])
+    dataset_test_original_size = load_real_original_size(datapath_test, mode='train', testcase=[])
+
 dataloader_fake = torch.utils.data.DataLoader(dataset = dataset_fake,
                                         batch_size = 8,
-                                        shuffle = True)
+                                        shuffle = True,
+                                        num_workers = 2,
+                                        pin_memory = True)
 
-datapath_real='../data/real-circuit-data-plus/'
-dataset_real = load_real(datapath_real, mode='train', testcase=[])
 dataloader_real = torch.utils.data.DataLoader(dataset = dataset_real,
                                         batch_size = 8,
-                                        shuffle = True)
+                                        shuffle = True,
+                                        num_workers = 2,
+                                        pin_memory = True)
 
-datapath_test='../data/hidden-real-circuit-data/'
-dataset_test = load_real(datapath_test, mode='train', testcase=[])
 dataloader_test = torch.utils.data.DataLoader(dataset = dataset_test,
                                         batch_size = 5,
                                         shuffle = False)
 
-dataset_test_original_size = load_real_original_size(datapath_test, mode='train', testcase=[])
 dataloader_test_original_size = torch.utils.data.DataLoader(dataset = dataset_test_original_size,
                                         batch_size = 1,
                                         shuffle = False)

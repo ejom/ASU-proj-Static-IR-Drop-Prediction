@@ -8,6 +8,24 @@ import re
 from collections import defaultdict
 
 
+class load_npy(data.Dataset):
+    """Fast dataset that loads preprocessed .npy files."""
+    def __init__(self, npy_dir, mode='train', testcase=[]):
+        all_files = sorted([f for f in os.listdir(npy_dir) if f.endswith('.npy')])
+        if mode == 'train':
+            self.files = [f for f in all_files if os.path.splitext(f)[0] not in testcase]
+        else:
+            self.files = [f for f in all_files if os.path.splitext(f)[0] in testcase]
+        self.files = [os.path.join(npy_dir, f) for f in self.files]
+        print(f'load_npy: {len(self.files)} samples from {npy_dir}')
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, idx):
+        return torch.from_numpy(np.load(self.files[idx]))
+
+
 def _load_csv_or_zeros(filepath, shape):
     """Load a CSV file, or return a zero array if the file doesn't exist."""
     if os.path.exists(filepath):
