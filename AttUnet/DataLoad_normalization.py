@@ -3,14 +3,15 @@ from torch.utils import data
 import os
 import numpy as np
 from skimage.transform import resize
-import torchvision.transforms as transforms
 import re
 from collections import defaultdict
 
 
 class load_npy(data.Dataset):
     """Fast dataset that loads preprocessed .npy files."""
-    def __init__(self, npy_dir, mode='train', testcase=[]):
+    def __init__(self, npy_dir, mode='train', testcase=None):
+        if testcase is None:
+            testcase = []
         all_files = sorted([f for f in os.listdir(npy_dir) if f.endswith('.npy')])
         if mode == 'train':
             self.files = [f for f in all_files if os.path.splitext(f)[0] not in testcase]
@@ -117,7 +118,7 @@ class load_fake(data.Dataset):
                 pdn = torch.tensor(resize(pdn, [512,512])).float().unsqueeze(0)
             elif 'ir_drop' in m_path:
                 ir_drop = np.genfromtxt(m_path, delimiter = ',')
-                ir_drop = torch.tensor(resize(ir_drop, [512,512])).float().unsqueeze(0)
+                ir_drop = torch.tensor(resize(ir_drop, [512,512], preserve_range=True)).float().unsqueeze(0)
             elif 'resistance_m1' in m_path:
                 resistance_m1 = np.genfromtxt(m_path, delimiter = ',')
                 resistance_m1 = _safe_normalize(resistance_m1)
@@ -169,7 +170,9 @@ class load_fake(data.Dataset):
         return len(self.maps)
     
 class load_real(data.Dataset):
-    def __init__(self, folder_path, mode='train', testcase = []):
+    def __init__(self, folder_path, mode='train', testcase=None):
+        if testcase is None:
+            testcase = []
         self.folder_path = folder_path
         self.folder_list = [f for f in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, f))]
         self.folder_list = sorted(self.folder_list)
@@ -227,7 +230,7 @@ class load_real(data.Dataset):
         via_m8m9 = torch.tensor(resize(via_m8m9, [512,512])).float().unsqueeze(0)
 
         ir_drop = np.genfromtxt(os.path.join(folder_dir,'ir_drop_map.csv'), delimiter = ',')
-        ir_drop = torch.tensor(resize(ir_drop, [512,512])).float().unsqueeze(0)
+        ir_drop = torch.tensor(resize(ir_drop, [512,512], preserve_range=True)).float().unsqueeze(0)
 
         data = torch.concat([current, dist, pdn, resistance_m1, resistance_m4, resistance_m7,
                              resistance_m8, resistance_m9, via_m1m4, via_m4m7, via_m7m8, via_m8m9,
@@ -237,7 +240,9 @@ class load_real(data.Dataset):
 
 
 class load_real_original_size(data.Dataset):
-    def __init__(self, folder_path, mode='train', testcase = [], print_name = False):
+    def __init__(self, folder_path, mode='train', testcase=None, print_name=False):
+        if testcase is None:
+            testcase = []
         self.folder_path = folder_path
         self.folder_list = [f for f in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, f))]
         self.folder_list = sorted(self.folder_list)

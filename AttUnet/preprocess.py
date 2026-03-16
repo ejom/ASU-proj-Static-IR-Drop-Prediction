@@ -26,12 +26,6 @@ def _load_and_normalize(path):
     return arr
 
 
-def _load_or_zeros(path, shape):
-    if os.path.exists(path):
-        return _load_and_normalize(path)
-    return np.zeros(shape)
-
-
 def preprocess_fake(src_dir, dst_dir):
     """Convert fake-circuit-data-plus CSVs to (13, 512, 512) .npy files."""
     os.makedirs(dst_dir, exist_ok=True)
@@ -52,16 +46,6 @@ def preprocess_fake(src_dir, dst_dir):
             continue
 
         print(f'  [{idx+1}] {base_name}')
-
-        file_map = {}
-        for f in group:
-            file_map[f] = os.path.join(src_dir, f)
-
-        def find(keyword):
-            for f, p in file_map.items():
-                if keyword in f and f.endswith('.csv'):
-                    return p
-            return None
 
         channels = []
         for key in ['_current.csv', '_eff_dist.csv', '_pdn_density.csv',
@@ -117,8 +101,13 @@ def preprocess_real(src_dir, dst_dir, dst_dir_orig=None):
 
     for idx, folder in enumerate(folders):
         out_path = os.path.join(dst_dir, f'{folder}.npy')
-        if os.path.exists(out_path):
-            continue
+        out_orig = os.path.join(dst_dir_orig, f'{folder}.npy') if dst_dir_orig else None
+        if dst_dir_orig:
+            if os.path.exists(out_path) and os.path.exists(out_orig):
+                continue
+        else:
+            if os.path.exists(out_path):
+                continue
 
         print(f'  [{idx+1}/{len(folders)}] {folder}')
         folder_path = os.path.join(src_dir, folder)

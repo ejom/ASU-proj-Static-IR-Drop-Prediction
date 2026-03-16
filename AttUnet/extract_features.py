@@ -102,10 +102,13 @@ def process_directory(data_dir):
             print(f'  Skipping {folder} — no netlist.sp')
             continue
 
-        # Check if already has proper per-layer features
+        # Check if already has all per-layer resistance and via features
         has_features = all(
             os.path.exists(os.path.join(folder_path, f'resistance_{layer}.csv'))
             for layer in METAL_LAYERS
+        ) and all(
+            os.path.exists(os.path.join(folder_path, f'via_{a}{b}.csv'))
+            for a, b in VIA_PAIRS
         )
         if has_features:
             print(f'  {folder} — already has features, skipping')

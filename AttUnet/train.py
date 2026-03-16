@@ -41,10 +41,11 @@ os.makedirs(f'{SAVE_DIR}/ft_real', exist_ok=True)
 
 ######## Reproducibility ########
 
-torch.cuda.empty_cache()
 np.random.seed(0)
 torch.manual_seed(0)
-torch.cuda.manual_seed_all(0)
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+    torch.cuda.manual_seed_all(0)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
@@ -114,6 +115,8 @@ criterion = CustomMSELoss()
 
 def evaluate_on_test(model):
     """Run model on hidden test set and return average L1 and F1."""
+    assert len(dataloader_test) == len(dataloader_test_original_size), \
+        f'Test loader mismatch: {len(dataloader_test)} vs {len(dataloader_test_original_size)}'
     model.eval()
     l1_sum = 0
     f1_sum = 0
@@ -125,7 +128,7 @@ def evaluate_on_test(model):
             output = output.cpu().detach().numpy()[0, 0] / scale
             ir_np = ir.numpy()[0, 0]
             output_resized = resize(output, ir_np.shape, preserve_range=True)
-            output = torch.tensor(output_resized).unsqueeze(0).unsqueeze(0)
+            output = torch.tensor(output_resized, dtype=ir.dtype).unsqueeze(0).unsqueeze(0)
             l1_sum += L1(output, ir).item()
             f1_sum += F1_Score(output.numpy().copy(), ir.numpy().copy())[0]
     n = len(dataloader_test)

@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import argparse
-import numpy as np
 from model import VCAttUNet
 from DataLoad_normalization import load_real_original_size, load_npy
 from metrics import F1_Score
@@ -39,6 +38,8 @@ L1 = nn.L1Loss()
 
 
 def evaluate_model(model, dataloader_512, dataloader_orig):
+    assert len(dataloader_512) == len(dataloader_orig), \
+        f'Test loader mismatch: {len(dataloader_512)} vs {len(dataloader_orig)}'
     model.eval()
     total_l1 = 0
     total_f1 = 0
@@ -54,7 +55,7 @@ def evaluate_model(model, dataloader_512, dataloader_orig):
             ir_np = ir.numpy()[0, 0]
 
             output_resized = resize(output, ir_np.shape, preserve_range=True)
-            output_t = torch.tensor(output_resized).unsqueeze(0).unsqueeze(0)
+            output_t = torch.tensor(output_resized, dtype=ir.dtype).unsqueeze(0).unsqueeze(0)
 
             l1 = L1(output_t, ir).item()
             f1 = F1_Score(output_t.numpy().copy(), ir.numpy().copy())[0]
