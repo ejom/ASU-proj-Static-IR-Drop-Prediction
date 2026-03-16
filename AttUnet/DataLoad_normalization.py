@@ -8,6 +8,17 @@ import re
 from collections import defaultdict
 
 
+def _load_csv_or_zeros(filepath, shape):
+    """Load a CSV file, or return a zero array if the file doesn't exist."""
+    if os.path.exists(filepath):
+        arr = np.genfromtxt(filepath, delimiter=',')
+        if arr.max() > 0:
+            arr = arr / arr.max()
+        return arr
+    else:
+        return np.zeros(shape)
+
+
 
 # Create a function to extract resistance and node coordinates
 def extract_data(line):
@@ -139,7 +150,7 @@ class load_fake(data.Dataset):
 class load_real(data.Dataset):
     def __init__(self, folder_path, mode='train', testcase = []):
         self.folder_path = folder_path
-        self.folder_list = os.listdir(folder_path)
+        self.folder_list = [f for f in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, f))]
         self.folder_list = sorted(self.folder_list)
         print(self.folder_list)
         if mode == 'train':
@@ -153,74 +164,61 @@ class load_real(data.Dataset):
     def __getitem__(self, index):
         folder_name = self.folder_list[index]
         folder_dir = os.path.join(self.folder_path, folder_name)
-        
+
         current = np.genfromtxt(os.path.join(folder_dir,'current_map.csv'), delimiter = ',')
-        current = current/current.max() #(current-current.mean())/current.std()
+        current = current/current.max()
+        base_shape = current.shape
         current = torch.tensor(resize(current, [512,512])).float().unsqueeze(0)
-        
+
         dist = np.genfromtxt(os.path.join(folder_dir,'eff_dist_map.csv'), delimiter = ',')
         dist = dist/dist.max()
         dist = torch.tensor(resize(dist, [512,512])).float().unsqueeze(0)
-        
+
         pdn = np.genfromtxt(os.path.join(folder_dir,'pdn_density.csv'), delimiter = ',')
         pdn = pdn/pdn.max()
         pdn = torch.tensor(resize(pdn, [512,512])).float().unsqueeze(0)
-        
-        resistance_m1 = np.genfromtxt(os.path.join(folder_dir,'resistance_m1.csv'), delimiter = ',')
-        resistance_m1 = resistance_m1/resistance_m1.max()
+
+        resistance_m1 = _load_csv_or_zeros(os.path.join(folder_dir,'resistance_m1.csv'), base_shape)
         resistance_m1 = torch.tensor(resize(resistance_m1, [512,512])).float().unsqueeze(0)
-        
-        resistance_m4 = np.genfromtxt(os.path.join(folder_dir,'resistance_m4.csv'), delimiter = ',')
-        resistance_m4 = resistance_m4/resistance_m4.max()
+
+        resistance_m4 = _load_csv_or_zeros(os.path.join(folder_dir,'resistance_m4.csv'), base_shape)
         resistance_m4 = torch.tensor(resize(resistance_m4, [512,512])).float().unsqueeze(0)
-        
-        resistance_m7 = np.genfromtxt(os.path.join(folder_dir,'resistance_m7.csv'), delimiter = ',')
-        resistance_m7 = resistance_m7/resistance_m7.max()
+
+        resistance_m7 = _load_csv_or_zeros(os.path.join(folder_dir,'resistance_m7.csv'), base_shape)
         resistance_m7 = torch.tensor(resize(resistance_m7, [512,512])).float().unsqueeze(0)
-        
-        resistance_m8 = np.genfromtxt(os.path.join(folder_dir,'resistance_m8.csv'), delimiter = ',')
-        resistance_m8 = resistance_m8/resistance_m8.max()
+
+        resistance_m8 = _load_csv_or_zeros(os.path.join(folder_dir,'resistance_m8.csv'), base_shape)
         resistance_m8 = torch.tensor(resize(resistance_m8, [512,512])).float().unsqueeze(0)
-        
-        resistance_m9 = np.genfromtxt(os.path.join(folder_dir,'resistance_m9.csv'), delimiter = ',')
-        resistance_m9 = resistance_m9/resistance_m9.max()
+
+        resistance_m9 = _load_csv_or_zeros(os.path.join(folder_dir,'resistance_m9.csv'), base_shape)
         resistance_m9 = torch.tensor(resize(resistance_m9, [512,512])).float().unsqueeze(0)
-        
-        via_m1m4 = np.genfromtxt(os.path.join(folder_dir,'via_m1m4.csv'), delimiter = ',')
-        via_m1m4 = via_m1m4/via_m1m4.max()
+
+        via_m1m4 = _load_csv_or_zeros(os.path.join(folder_dir,'via_m1m4.csv'), base_shape)
         via_m1m4 = torch.tensor(resize(via_m1m4, [512,512])).float().unsqueeze(0)
-        
-        via_m4m7 = np.genfromtxt(os.path.join(folder_dir,'via_m4m7.csv'), delimiter = ',')
-        via_m4m7 = via_m4m7/via_m4m7.max()
+
+        via_m4m7 = _load_csv_or_zeros(os.path.join(folder_dir,'via_m4m7.csv'), base_shape)
         via_m4m7 = torch.tensor(resize(via_m4m7, [512,512])).float().unsqueeze(0)
-        
-        via_m7m8 = np.genfromtxt(os.path.join(folder_dir,'via_m7m8.csv'), delimiter = ',')
-        via_m7m8 = via_m7m8/via_m7m8.max()
+
+        via_m7m8 = _load_csv_or_zeros(os.path.join(folder_dir,'via_m7m8.csv'), base_shape)
         via_m7m8 = torch.tensor(resize(via_m7m8, [512,512])).float().unsqueeze(0)
-        
-        via_m8m9 = np.genfromtxt(os.path.join(folder_dir,'via_m8m9.csv'), delimiter = ',')
-        via_m8m9 = via_m8m9/via_m8m9.max()
+
+        via_m8m9 = _load_csv_or_zeros(os.path.join(folder_dir,'via_m8m9.csv'), base_shape)
         via_m8m9 = torch.tensor(resize(via_m8m9, [512,512])).float().unsqueeze(0)
-        
-        # current_source = np.genfromtxt(os.path.join(folder_dir,'current_source.csv'), delimiter = ',')
-        # current_source = current_source/current_source.max()
-        # current_source = torch.tensor(resize(current_source, [512,512])).float().unsqueeze(0)
-        
-        
+
         ir_drop = np.genfromtxt(os.path.join(folder_dir,'ir_drop_map.csv'), delimiter = ',')
         ir_drop = torch.tensor(resize(ir_drop, [512,512])).float().unsqueeze(0)
-        
-        data = torch.concat([current, dist, pdn, resistance_m1, resistance_m4, resistance_m7, 
-                             resistance_m8, resistance_m9, via_m1m4, via_m4m7, via_m7m8, via_m8m9, 
+
+        data = torch.concat([current, dist, pdn, resistance_m1, resistance_m4, resistance_m7,
+                             resistance_m8, resistance_m9, via_m1m4, via_m4m7, via_m7m8, via_m8m9,
                              ir_drop], dim=0)
-        
+
         return data
-        
-        
+
+
 class load_real_original_size(data.Dataset):
     def __init__(self, folder_path, mode='train', testcase = [], print_name = False):
         self.folder_path = folder_path
-        self.folder_list = os.listdir(folder_path)
+        self.folder_list = [f for f in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, f))]
         self.folder_list = sorted(self.folder_list)
         if mode == 'train':
             self.folder_list = [f for f in self.folder_list if f not in testcase]
@@ -238,68 +236,54 @@ class load_real_original_size(data.Dataset):
     def __getitem__(self, index):
         folder_name = self.folder_list[index]
         folder_dir = os.path.join(self.folder_path, folder_name)
-        
+
         current = np.genfromtxt(os.path.join(folder_dir,'current_map.csv'), delimiter = ',')
         current = current/current.max()
         shape = current.shape
         current = torch.tensor(current).float().unsqueeze(0)
-        
-        
+
         dist = np.genfromtxt(os.path.join(folder_dir,'eff_dist_map.csv'), delimiter = ',')
         dist = dist/dist.max()
         dist = torch.tensor(dist).float().unsqueeze(0)
-        
+
         pdn = np.genfromtxt(os.path.join(folder_dir,'pdn_density.csv'), delimiter = ',')
         pdn = pdn/pdn.max()
         pdn = torch.tensor(pdn).float().unsqueeze(0)
-        
-        resistance_m1 = np.genfromtxt(os.path.join(folder_dir,'resistance_m1.csv'), delimiter = ',')
-        resistance_m1 = resistance_m1/resistance_m1.max()        
+
+        resistance_m1 = _load_csv_or_zeros(os.path.join(folder_dir,'resistance_m1.csv'), shape)
         resistance_m1 = torch.tensor(resize(resistance_m1, shape)).float().unsqueeze(0)
-        
-        resistance_m4 = np.genfromtxt(os.path.join(folder_dir,'resistance_m4.csv'), delimiter = ',')
-        resistance_m4 = resistance_m4/resistance_m4.max()
+
+        resistance_m4 = _load_csv_or_zeros(os.path.join(folder_dir,'resistance_m4.csv'), shape)
         resistance_m4 = torch.tensor(resize(resistance_m4, shape)).float().unsqueeze(0)
-        
-        resistance_m7 = np.genfromtxt(os.path.join(folder_dir,'resistance_m7.csv'), delimiter = ',')
-        resistance_m7 = resistance_m7/resistance_m7.max()
+
+        resistance_m7 = _load_csv_or_zeros(os.path.join(folder_dir,'resistance_m7.csv'), shape)
         resistance_m7 = torch.tensor(resize(resistance_m7, shape)).float().unsqueeze(0)
-        
-        resistance_m8 = np.genfromtxt(os.path.join(folder_dir,'resistance_m8.csv'), delimiter = ',')
-        resistance_m8 = resistance_m8/resistance_m8.max()
+
+        resistance_m8 = _load_csv_or_zeros(os.path.join(folder_dir,'resistance_m8.csv'), shape)
         resistance_m8 = torch.tensor(resize(resistance_m8, shape)).float().unsqueeze(0)
-        
-        resistance_m9 = np.genfromtxt(os.path.join(folder_dir,'resistance_m9.csv'), delimiter = ',')
-        resistance_m9 = resistance_m9/resistance_m9.max()
+
+        resistance_m9 = _load_csv_or_zeros(os.path.join(folder_dir,'resistance_m9.csv'), shape)
         resistance_m9 = torch.tensor(resize(resistance_m9, shape)).float().unsqueeze(0)
-        
-        via_m1m4 = np.genfromtxt(os.path.join(folder_dir,'via_m1m4.csv'), delimiter = ',')
-        via_m1m4 = via_m1m4/via_m1m4.max()
+
+        via_m1m4 = _load_csv_or_zeros(os.path.join(folder_dir,'via_m1m4.csv'), shape)
         via_m1m4 = torch.tensor(resize(via_m1m4, shape)).float().unsqueeze(0)
-        
-        via_m4m7 = np.genfromtxt(os.path.join(folder_dir,'via_m4m7.csv'), delimiter = ',')
-        via_m4m7 = via_m4m7/via_m4m7.max()
+
+        via_m4m7 = _load_csv_or_zeros(os.path.join(folder_dir,'via_m4m7.csv'), shape)
         via_m4m7 = torch.tensor(resize(via_m4m7, shape)).float().unsqueeze(0)
-        
-        via_m7m8 = np.genfromtxt(os.path.join(folder_dir,'via_m7m8.csv'), delimiter = ',')
-        via_m7m8 = via_m7m8/via_m7m8.max()
+
+        via_m7m8 = _load_csv_or_zeros(os.path.join(folder_dir,'via_m7m8.csv'), shape)
         via_m7m8 = torch.tensor(resize(via_m7m8, shape)).float().unsqueeze(0)
-        
-        via_m8m9 = np.genfromtxt(os.path.join(folder_dir,'via_m8m9.csv'), delimiter = ',')
-        via_m8m9 = via_m8m9/via_m8m9.max()
+
+        via_m8m9 = _load_csv_or_zeros(os.path.join(folder_dir,'via_m8m9.csv'), shape)
         via_m8m9 = torch.tensor(resize(via_m8m9, shape)).float().unsqueeze(0)
-        
-        # current_source = np.genfromtxt(os.path.join(folder_dir,'current_source.csv'), delimiter = ',')
-        # current_source = current_source/current_source.max()
-        # current_source = torch.tensor(resize(current_source, shape)).float().unsqueeze(0)
 
         ir_drop = np.genfromtxt(os.path.join(folder_dir,'ir_drop_map.csv'), delimiter = ',')
         ir_drop = torch.tensor(ir_drop).float().unsqueeze(0)
-            
-        data = torch.concat([current, dist, pdn, resistance_m1, resistance_m4, resistance_m7, 
-                             resistance_m8, resistance_m9, via_m1m4, via_m4m7, via_m7m8, via_m8m9, 
+
+        data = torch.concat([current, dist, pdn, resistance_m1, resistance_m4, resistance_m7,
+                             resistance_m8, resistance_m9, via_m1m4, via_m4m7, via_m7m8, via_m8m9,
                              ir_drop], dim=0)
-        
+
         return data
         
         

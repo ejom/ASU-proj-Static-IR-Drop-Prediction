@@ -6,7 +6,7 @@ Created on Sun Feb 18 22:11:33 2024
 """
 # import wandb
 
-
+import os
 import torch
 import torch.nn as nn
 from skimage.transform import resize
@@ -19,6 +19,9 @@ from metrics import F1_Score
 import seaborn as sns
 from matplotlib import pyplot as plt
 
+# Create checkpoint directories
+os.makedirs('../saved/pt', exist_ok=True)
+os.makedirs('../saved/ft_real', exist_ok=True)
 
 torch.cuda.empty_cache()
 np.random.seed(0)
@@ -45,7 +48,7 @@ dataloader_real = torch.utils.data.DataLoader(dataset = dataset_real,
                                         batch_size = 8,
                                         shuffle = True)
 
-datapath_test='../data/hidden-real-circuit-data-plus/'
+datapath_test='../data/hidden-real-circuit-data/'
 dataset_test = load_real(datapath_test, mode='train', testcase=[])
 dataloader_test = torch.utils.data.DataLoader(dataset = dataset_test,
                                         batch_size = 5,
