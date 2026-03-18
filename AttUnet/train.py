@@ -171,7 +171,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_ft)
 
 
 
-for epoch in range(num_epochs_ft):
+for epoch in range(300, num_epochs_ft):
     loss_sum = 0
     f_score = 0
     for i, data in enumerate(dataloader_real):
