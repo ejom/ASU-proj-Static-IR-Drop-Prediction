@@ -9,6 +9,7 @@ Created on Sun Feb 18 22:11:33 2024
 
 import torch
 import torch.nn as nn
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from skimage.transform import resize
 
 import numpy as np
@@ -84,6 +85,7 @@ num_epochs_ft = 500
 
 learning_rate_pt = 0.001
 learning_rate_ft = 0.0005
+learning_rate_min = 0.00001
 scale = 100
 
 MSE = nn.MSELoss()
@@ -163,6 +165,7 @@ print('****** After pretraining, L1 Loss: {:.8f}, F1 Score: {:.4f}'.format(l1_su
 #model.load_state_dict(torch.load('/content/drive/MyDrive/saved/ft_real/499.pth'))
 
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_ft)
+scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs_ft, eta_min=learning_rate_min)
 
 for epoch in range(num_epochs_ft):
     loss_sum = 0
@@ -188,8 +191,8 @@ for epoch in range(num_epochs_ft):
     print('Epoch [{}/{}], Loss: {:.4f}, F1 Score: {:.4f}, MSE: {:.4f}, L1: {:.4f}'
             .format(epoch+1, num_epochs_ft, loss_sum/len(dataloader_real), f_score/len(dataloader_real), mse.item(), l1.item()))
     # wandb.log({'ft_loss':loss_sum/len(dataloader_real), 'ft_f1':f_score/len(dataloader_real)})
+    scheduler.step()
 
-        
     if (epoch+1) % 50 == 0 or epoch == 0:
         torch.save(model.state_dict(), '/content/drive/MyDrive/saved/ft_real/'+str(epoch)+'.pth')
         """
