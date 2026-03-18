@@ -24,7 +24,7 @@ torch.cuda.empty_cache()
 np.random.seed(0)
 torch.manual_seed(0)
 torch.cuda.manual_seed_all(0)
-torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -107,10 +107,9 @@ from model import VCAttUNet as net
 model = net(in_ch=12, out_ch=1).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_pt)
 
-
-
 model.train()
-"""
+#model.load_state_dict(torch.load('/content/drive/MyDrive/saved/ft_real/499.pth'))
+
 for epoch in range(num_epochs_pt):
     loss_sum = 0
     f_score = 0
@@ -158,16 +157,14 @@ for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_origina
 print('****** After pretraining, L1 Loss: {:.8f}, F1 Score: {:.4f}'.format(l1_sum/len(dataloader_test), f1_sum/len(dataloader_test)))
 # wandb.log({'after_pt_l1':l1_sum/len(dataloader_test), 'after_pt_f1':f1_sum/len(dataloader_test)})
 
-"""
 
 
 ######## Finetune ########
-model.load_state_dict(torch.load('/content/drive/MyDrive/saved/ft_real/499.pth'))
+#model.load_state_dict(torch.load('/content/drive/MyDrive/saved/ft_real/499.pth'))
 
-#optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_ft)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_ft)
 
-for epoch in range(499, num_epochs_ft):
-    """
+for epoch in range(num_epochs_ft):
     loss_sum = 0
     f_score = 0
     for i, data in enumerate(dataloader_real):
@@ -191,10 +188,11 @@ for epoch in range(499, num_epochs_ft):
     print('Epoch [{}/{}], Loss: {:.4f}, F1 Score: {:.4f}, MSE: {:.4f}, L1: {:.4f}'
             .format(epoch+1, num_epochs_ft, loss_sum/len(dataloader_real), f_score/len(dataloader_real), mse.item(), l1.item()))
     # wandb.log({'ft_loss':loss_sum/len(dataloader_real), 'ft_f1':f_score/len(dataloader_real)})
-    """
+
         
     if (epoch+1) % 50 == 0 or epoch == 0:
-        #torch.save(model.state_dict(), '/content/drive/MyDrive/saved/ft_real/'+str(epoch)+'.pth')
+        torch.save(model.state_dict(), '/content/drive/MyDrive/saved/ft_real/'+str(epoch)+'.pth')
+        """
         l1_sum=0
         f1_sum=0
         for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_original_size)):
@@ -211,17 +209,15 @@ for epoch in range(499, num_epochs_ft):
             print(L1(output, ir).item(), F1_Score(output.numpy().copy(), ir.numpy().copy())[0])
         
         
-        fig, axs = plt.subplots(1,2, sharex=True, sharey=True, figsize=(10, 4))
-        sns.heatmap(output.numpy()[0,0,:],ax=axs[0])
-        sns.heatmap(ir.numpy()[0,0,:],ax=axs[1])
-        plt.show()
+        #fig, axs = plt.subplots(1,2, sharex=True, sharey=True, figsize=(10, 4))
+        #sns.heatmap(output.numpy()[0,0,:],ax=axs[0])
+        #sns.heatmap(ir.numpy()[0,0,:],ax=axs[1])
         # wandb_fig = wandb.Image(fig)
         # wandb.log({'After Finetuning Epoch: '+str(epoch+1):wandb_fig})
 
         print('****** After Finetuning Epoch: {}, L1 Loss: {:.8f}, F1 Score: {:.4f}'.format(epoch+1,l1_sum/len(dataloader_test), f1_sum/len(dataloader_test)))
         # wandb.log({'after_ft_l1':l1_sum/len(dataloader_test), 'after_ft_f1':f1_sum/len(dataloader_test)})
-        
-
+        """
 
 
 

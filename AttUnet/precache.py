@@ -8,10 +8,10 @@ from DataLoad_normalization import load_fake, load_real, load_real_original_size
 
 
 DATASETS = {
-    '../data/cache/fake': lambda: load_fake('../data/fake-circuit-data-plus/'),
-    '../data/cache/real': lambda: load_real('../data/real-circuit-data-plus/', mode='train', testcase=[]),
-    '../data/cache/test': lambda: load_real('../data/hidden-real-circuit-data/', mode='train', testcase=[]),
-    '../data/cache/test_original': lambda: load_real_original_size('../data/hidden-real-circuit-data/', mode='train', testcase=[]),
+    'data/cache/fake': lambda: load_fake('data/fake-circuit-data-plus/'),
+    'data/cache/real': lambda: load_real('data/real-circuit-data-plus/', mode='train', testcase=[]),
+    'data/cache/test': lambda: load_real('data/hidden-real-circuit-data/', mode='train', testcase=[]),
+    'data/cache/test_original': lambda: load_real_original_size('data/hidden-real-circuit-data/', mode='train', testcase=[]),
 }
 
 
