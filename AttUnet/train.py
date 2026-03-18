@@ -217,6 +217,7 @@ for epoch in range(499, num_epochs_ft):
         fig, axs = plt.subplots(1,2, sharex=True, sharey=True, figsize=(10, 4))
         sns.heatmap(output.numpy()[0,0,:],ax=axs[0])
         sns.heatmap(ir.numpy()[0,0,:],ax=axs[1])
+        plt.show()
         # wandb_fig = wandb.Image(fig)
         # wandb.log({'After Finetuning Epoch: '+str(epoch+1):wandb_fig})
 
