@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import argparse
-from model import AttUNet  # Assuming model.py defines this
+# from model import AttUNet  # Assuming model.py defines this
 from DataLoad_normalization import load_real, load_fake, load_real_original_size
 from sklearn.metrics import f1_score
-# from model import VCAttUNet
+from model import VCAttUNet
 from skimage.transform import resize
 
 
@@ -89,7 +89,7 @@ def evaluate_model(model, dataloader):
 def main():
     # Load the trained model from the provided path
     model_path = args.model
-    model = AttUNet(dropout_rate=0.1)  # Adjust dropout as per trained model
+    model = VCAttUNet(dropout_rate=0.1)  # Adjust dropout as per trained model
     
     try:
         model.load_state_dict(torch.load(model_path))  # Load the model
