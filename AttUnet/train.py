@@ -113,6 +113,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_pt)
 
 
 model.train()
+"""
 for epoch in range(num_epochs_pt):
     loss_sum = 0
     f_score = 0
@@ -160,11 +161,11 @@ for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_origina
 print('****** After pretraining, L1 Loss: {:.8f}, F1 Score: {:.4f}'.format(l1_sum/len(dataloader_test), f1_sum/len(dataloader_test)))
 # wandb.log({'after_pt_l1':l1_sum/len(dataloader_test), 'after_pt_f1':f1_sum/len(dataloader_test)})
 
-
+"""
 
 
 ######## Finetune ########
-# model.load_state_dict(torch.load('../saved/pt/49.pth'))
+model.load_state_dict(torch.load('/content/drive/MyDrive/saved/pt/49.pth'))
 
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_ft)
 
