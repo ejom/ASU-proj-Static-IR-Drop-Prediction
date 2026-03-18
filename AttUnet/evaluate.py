@@ -18,7 +18,7 @@ args = parser.parse_args()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Paths
-datapath_test = '../data/hidden-real-circuit-data-plus/'
+datapath_test = '../data/hidden-real-circuit-data/'
 
 # Load the test data (original size)
 dataset_test_original_size = load_real_original_size(datapath_test, mode='train', testcase=[])
