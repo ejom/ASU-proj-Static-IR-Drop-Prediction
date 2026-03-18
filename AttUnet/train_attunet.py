@@ -9,7 +9,7 @@ from DataLoad_normalization import load_real, load_fake, load_real_original_size
 # Argument parser to handle --phase argument
 parser = argparse.ArgumentParser(description='Train AttUNet for static IR drop prediction')
 parser.add_argument('--phase', type=str, choices=['pretrain', 'finetune'], required=True, help='Phase of training: pretrain or finetune')
-args = parser.parseArgs()
+args = parser.parse_args()
 
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
