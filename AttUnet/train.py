@@ -134,7 +134,7 @@ for epoch in range(num_epochs_pt):
         f_score += F1_Score(output.cpu().detach().numpy().copy(), ir.cpu().numpy().copy())[0]
         
     if (epoch+1) % 50 == 0 or epoch == 0:
-        torch.save(model.state_dict(), '../saved/pt/'+str(epoch)+'.pth')
+        torch.save(model.state_dict(), '/content/drive/MyDrive/saved/pt/'+str(epoch)+'.pth')
         
     print('Epoch [{}/{}], Loss: {:.4f}, F1 Score: {:.4f}, MSE: {:.4f}, L1: {:.4f}'
             .format(epoch+1, num_epochs_pt, loss_sum/len(dataloader_fake), f_score/len(dataloader_fake), mse.item(), l1.item()))
@@ -197,7 +197,7 @@ for epoch in range(num_epochs_ft):
 
         
     if (epoch+1) % 50 == 0 or epoch == 0:
-        torch.save(model.state_dict(), '../saved/ft_real/'+str(epoch)+'.pth')
+        torch.save(model.state_dict(), '/content/drive/MyDrive/saved/ft_real/'+str(epoch)+'.pth')
         
         l1_sum=0
         f1_sum=0
