@@ -76,7 +76,7 @@ def generate_layer_csvs(spice_path, output_dir):
         print(f'Saved {out_path} (shape: {grid.shape})')
 
 # Run for all hidden test cases
-hidden_dir = '../data/hidden-real-circuit-data/'
+hidden_dir = 'data/hidden-real-circuit-data/'
 for tc in sorted(os.listdir(hidden_dir)):
     tc_path = os.path.join(hidden_dir, tc)
     sp_file = os.path.join(tc_path, 'netlist.sp')
