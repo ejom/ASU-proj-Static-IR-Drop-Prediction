@@ -5,7 +5,7 @@ import argparse
 from model import AttUNet  # Assuming model.py defines this
 from DataLoad_normalization import load_real, load_fake, load_real_original_size
 from sklearn.metrics import f1_score
-from model import VCAttUNet
+# from model import VCAttUNet
 from skimage.transform import resize
 
 
