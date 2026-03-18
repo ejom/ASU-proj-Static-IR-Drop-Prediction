@@ -64,16 +64,9 @@ class CustomMSELoss(nn.Module):
         self.negative_scale = negative_scale
 
     def forward(self, prediction, target):
-        # Calculate the squared error
-        squared_error = torch.abs(prediction - target) 
-        
-        # Identify negative errors
+        squared_error = (prediction - target) ** 2
         negative_errors = (prediction - target) < 0
-        
-        # Apply scaling to negative errors
         squared_error[negative_errors] *= self.negative_scale
-        
-        # Calculate mean of the modified squared error
         loss = torch.mean(squared_error)
         return loss
 
