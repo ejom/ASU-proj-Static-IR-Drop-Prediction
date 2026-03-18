@@ -45,7 +45,7 @@ dataloader_real = torch.utils.data.DataLoader(dataset = dataset_real,
                                         batch_size = 8,
                                         shuffle = True)
 
-datapath_test='../data/hidden-real-circuit-data-plus/'
+datapath_test='../data/hidden-real-circuit-data/'
 dataset_test = load_real(datapath_test, mode='train', testcase=[])
 dataloader_test = torch.utils.data.DataLoader(dataset = dataset_test,
                                         batch_size = 5,
