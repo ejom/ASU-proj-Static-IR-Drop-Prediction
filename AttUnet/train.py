@@ -165,7 +165,7 @@ print('****** After pretraining, L1 Loss: {:.8f}, F1 Score: {:.4f}'.format(l1_su
 
 
 ######## Finetune ########
-model.load_state_dict(torch.load('/content/drive/MyDrive/saved/pt/49.pth'))
+model.load_state_dict(torch.load('/content/drive/MyDrive/saved/ft_real/299.pth'))
 
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_ft)
 
