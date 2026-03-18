@@ -36,7 +36,7 @@ class CustomLoss(nn.Module):
 
 # Define model, optimizer, scheduler, and loss function
 def build_model(dropout_rate, phase):
-    model = AttUNet(dropout_rate=dropout_rate)
+    model = VCAttUNet(dropout_rate=dropout_rate)
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     
