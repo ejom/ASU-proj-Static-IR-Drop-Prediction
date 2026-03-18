@@ -89,7 +89,7 @@ def evaluate_model(model, dataloader):
 def main():
     # Load the trained model from the provided path
     model_path = args.model
-    model = VCAttUNet(dropout_rate=0.1)  # Adjust dropout as per trained model
+    model = VCAttUNet()  # Adjust dropout as per trained model
     
     try:
         model.load_state_dict(torch.load(model_path))  # Load the model
