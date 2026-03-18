@@ -59,7 +59,7 @@ dataloader_test_original_size = torch.utils.data.DataLoader(dataset = dataset_te
 
 
 class CustomMSELoss(nn.Module):
-    def __init__(self, negative_scale=1.0):
+    def __init__(self, negative_scale=2.0):
         super(CustomMSELoss, self).__init__()
         self.negative_scale = negative_scale
 
