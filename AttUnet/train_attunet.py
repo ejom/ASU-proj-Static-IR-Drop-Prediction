@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 import argparse
-from model import AttUNet  # Assuming model.py defines this
+from model import VCAttUNet  # Assuming model.py defines this
 from DataLoad_normalization import load_real, load_fake, load_real_original_size
 
 # Argument parser to handle --phase argument
