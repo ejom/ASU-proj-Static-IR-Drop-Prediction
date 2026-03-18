@@ -199,7 +199,7 @@ for epoch in range(num_epochs_ft):
         
     if (epoch+1) % 50 == 0 or epoch == 0:
         torch.save(model.state_dict(), '/content/drive/MyDrive/saved/ft_real/'+str(epoch)+'.pth')
-        
+        """
         l1_sum=0
         f1_sum=0
         for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_original_size)):
@@ -215,6 +215,7 @@ for epoch in range(num_epochs_ft):
             f1_sum = F1_Score(output.numpy().copy(), ir.numpy().copy())[0]
             # print(L1(output, ir).item(), F1_Score(output.numpy().copy(), ir.numpy().copy())[0])
         
+        
         # fig, axs = plt.subplots(1,2, sharex=True, sharey=True, figsize=(10, 4))
         # sns.heatmap(output.numpy()[0,0,:],ax=axs[0])
         # sns.heatmap(ir.numpy()[0,0,:],ax=axs[1])
@@ -223,7 +224,7 @@ for epoch in range(num_epochs_ft):
 
         print('****** After Finetuning Epoch: {}, L1 Loss: {:.8f}, F1 Score: {:.4f}'.format(epoch+1,l1_sum/len(dataloader_test), f1_sum/len(dataloader_test)))
         # wandb.log({'after_ft_l1':l1_sum/len(dataloader_test), 'after_ft_f1':f1_sum/len(dataloader_test)})
-
+        """
 
 
 
