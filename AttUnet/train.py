@@ -13,7 +13,7 @@ from skimage.transform import resize
 
 import numpy as np
 
-from DataLoad_normalization import load_real, load_fake, load_real_original_size
+from DataLoad_normalization import load_cached
 from metrics import F1_Score
 
 import seaborn as sns
@@ -25,7 +25,7 @@ np.random.seed(0)
 torch.manual_seed(0)
 torch.cuda.manual_seed_all(0)
 torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.benchmark = True
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(device.type)
@@ -33,25 +33,22 @@ print(device.type)
 
 ######## dataloader ########
 
-datapath_fake='../data/fake-circuit-data-plus/'
-dataset_fake = load_fake(datapath_fake)
+dataset_fake = load_cached('../data/cache/fake')
 dataloader_fake = torch.utils.data.DataLoader(dataset = dataset_fake,
                                         batch_size = 8,
                                         shuffle = True)
 
-datapath_real='../data/real-circuit-data-plus/'
-dataset_real = load_real(datapath_real, mode='train', testcase=[])
+dataset_real = load_cached('../data/cache/real')
 dataloader_real = torch.utils.data.DataLoader(dataset = dataset_real,
                                         batch_size = 8,
                                         shuffle = True)
 
-datapath_test='../data/hidden-real-circuit-data/'
-dataset_test = load_real(datapath_test, mode='train', testcase=[])
+dataset_test = load_cached('../data/cache/test')
 dataloader_test = torch.utils.data.DataLoader(dataset = dataset_test,
                                         batch_size = 5,
                                         shuffle = False)
 
-dataset_test_original_size = load_real_original_size(datapath_test, mode='train', testcase=[])
+dataset_test_original_size = load_cached('../data/cache/test_original')
 dataloader_test_original_size = torch.utils.data.DataLoader(dataset = dataset_test_original_size,
                                         batch_size = 1,
                                         shuffle = False)

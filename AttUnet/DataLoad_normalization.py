@@ -52,6 +52,19 @@ def get_resistance(file_path):
     return resistance_grid, via_grid
 
 
+class load_cached(data.Dataset):
+    def __init__(self, cache_dir):
+        self.files = sorted(
+            [os.path.join(cache_dir, f) for f in os.listdir(cache_dir) if f.endswith('.pt')]
+        )
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, index):
+        return torch.load(self.files[index])
+
+
 class load_fake(data.Dataset):
     def __init__(self, root):
         maps = os.listdir(root)
