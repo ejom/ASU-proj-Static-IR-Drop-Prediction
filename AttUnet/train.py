@@ -73,8 +73,8 @@ class CustomMSELoss(nn.Module):
 
 ######## Hyperparameters ########
 
-num_epochs_pt = 50
-num_epochs_ft = 500
+num_epochs_pt = 400
+num_epochs_ft = 600
 
 learning_rate_pt = 0.001
 learning_rate_ft = 0.0005
