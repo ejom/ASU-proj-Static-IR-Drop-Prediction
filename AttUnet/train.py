@@ -34,12 +34,12 @@ print(device.type)
 
 ######## dataloader ########
 
-dataset_fake = load_cached('../data/cache/fake')
+dataset_fake = load_cached('../data/cache/fake', augment=True)
 dataloader_fake = torch.utils.data.DataLoader(dataset = dataset_fake,
                                         batch_size = 8,
                                         shuffle = True)
 
-dataset_real = load_cached('../data/cache/real')
+dataset_real = load_cached('../data/cache/real', augment=True)
 dataloader_real = torch.utils.data.DataLoader(dataset = dataset_real,
                                         batch_size = 8,
                                         shuffle = True)

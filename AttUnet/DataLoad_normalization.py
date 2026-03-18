@@ -53,16 +53,25 @@ def get_resistance(file_path):
 
 
 class load_cached(data.Dataset):
-    def __init__(self, cache_dir):
+    def __init__(self, cache_dir, augment=False):
         self.files = sorted(
             [os.path.join(cache_dir, f) for f in os.listdir(cache_dir) if f.endswith('.pt')]
         )
+        self.augment = augment
 
     def __len__(self):
         return len(self.files)
 
     def __getitem__(self, index):
-        return torch.load(self.files[index])
+        data = torch.load(self.files[index])
+        if self.augment:
+            if torch.rand(1) > 0.5:
+                data = data.flip(-1)
+            if torch.rand(1) > 0.5:
+                data = data.flip(-2)
+            k = torch.randint(0, 4, (1,)).item()
+            data = torch.rot90(data, k, [-2, -1])
+        return data
 
 
 class load_fake(data.Dataset):
