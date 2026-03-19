@@ -103,8 +103,8 @@ model = net(in_ch=12, out_ch=1).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_pt)
 
 model.train()
-#model.load_state_dict(torch.load('/content/drive/MyDrive/saved/ft_real/499.pth'))
-
+#model.load_state_dict(torch.load('/content/drive/MyDrive/ir-drop-full/pt/399.pth'))
+"""
 for epoch in range(num_epochs_pt):
     loss_sum = 0
     f_score = 0
@@ -152,9 +152,9 @@ for i,(data, data_org) in enumerate(zip(dataloader_test, dataloader_test_origina
 print('****** After pretraining, L1 Loss: {:.8f}, F1 Score: {:.4f}'.format(l1_sum/len(dataloader_test), f1_sum/len(dataloader_test)))
 # wandb.log({'after_pt_l1':l1_sum/len(dataloader_test), 'after_pt_f1':f1_sum/len(dataloader_test)})
 
-
+"""
 ######## Finetune ########
-#model.load_state_dict(torch.load('/content/drive/MyDrive/ir-drop-base/pt/49.pth'))
+model.load_state_dict(torch.load('/content/drive/MyDrive/ir-drop-full/pt/399.pth'))
 
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_ft)
 scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs_ft, eta_min=learning_rate_min)

@@ -41,8 +41,11 @@ MSE = nn.MSELoss()
 testcase_names = dataset_test_org.folder_list
 
 
-def evaluate_model(model_path):
-    """Evaluate a single model, return avg L1, avg F1, and per-case results."""
+def evaluate_model(model_path, store_tensors=True):
+    """Evaluate a single model, return avg L1, avg F1, and per-case results.
+
+    Set store_tensors=False during sweeps to save memory.
+    """
     model = net(in_ch=12, out_ch=1).to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
@@ -71,10 +74,11 @@ def evaluate_model(model_path):
             f1_sum += f1
 
             name = testcase_names[i] if i < len(testcase_names) else f'test_{i}'
-            per_case.append({
-                'name': name, 'l1': l1, 'f1': f1, 'mse': mse,
-                'output': output, 'ir': ir
-            })
+            entry = {'name': name, 'l1': l1, 'f1': f1, 'mse': mse}
+            if store_tensors:
+                entry['output'] = output
+                entry['ir'] = ir
+            per_case.append(entry)
 
     return l1_sum / n, f1_sum / n, per_case
 
@@ -128,10 +132,9 @@ else:
     best_f1 = -1
     best_path = None
     best_l1 = None
-    best_per_case = None
 
     for path in pth_files:
-        avg_l1, avg_f1, per_case = evaluate_model(path)
+        avg_l1, avg_f1, _ = evaluate_model(path, store_tensors=False)
         basename = os.path.basename(path)
         print(f'{basename:<40} {avg_l1:>10.6f} {avg_f1:>10.4f}')
 
@@ -139,11 +142,13 @@ else:
             best_f1 = avg_f1
             best_path = path
             best_l1 = avg_l1
-            best_per_case = per_case
 
     print('-' * 65)
     print(f'\nBest model: {os.path.basename(best_path)} (F1: {best_f1:.4f}, L1: {best_l1:.6f})')
     print('\n' + '=' * 65)
     print('DETAILED RESULTS FOR BEST MODEL')
     print('=' * 65)
-    print_detailed_results(best_path, best_l1, best_f1, best_per_case)
+
+    # Re-run best model with tensors for plots
+    avg_l1, avg_f1, per_case = evaluate_model(best_path, store_tensors=True)
+    print_detailed_results(best_path, avg_l1, avg_f1, per_case)
